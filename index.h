@@ -34,6 +34,40 @@ void print_float(double num, HANDLE hStdout, DWORD *written) {
 }
 
 
+void PrecisionFloat(double num, HANDLE hStdout, DWORD *written, int precision) {
+    // Print integer part
+    int intPart = (int)num;
+    char intBuffer[20];
+    int intLength = 0;
+    if (intPart == 0) {
+        intBuffer[intLength++] = '0'; // If integer part is zero, print '0'
+    } else {
+        while (intPart != 0) {
+            intBuffer[intLength++] = '0' + (intPart % 10);
+            intPart /= 10;
+        }
+    }
+    for (int i = intLength - 1; i >= 0; i--) {
+        WriteConsole(hStdout, &intBuffer[i], 1, written, NULL);
+    }
+
+    // Print decimal point
+    WriteConsole(hStdout, ".", 1, written, NULL);
+
+    // Print decimal part with specified precision
+    double decimalPart = num - (int)num;
+    for (int i = 0; i < precision; i++) {
+        decimalPart *= 10;
+        int digit = (int)decimalPart;
+        char digitChar = '0' + digit;
+        WriteConsole(hStdout, &digitChar, 1, written, NULL);
+        decimalPart -= digit;
+    }
+
+    // Print newline character
+    
+}
+
 void my_printf(const char *format, ...) {
     HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD written;
@@ -64,9 +98,7 @@ void my_printf(const char *format, ...) {
                 for (int i = length - 1; i >= 0; i--) {
                     WriteConsole(hStdout, &buffer[i], 1, &written, NULL);
                 }
-            } 
-            
-            
+            }         
             else if (*format == 'f') { // %f
                 double num = va_arg(args, double);
                 // printf("%f",num);
@@ -83,31 +115,58 @@ void my_printf(const char *format, ...) {
                 // printf("%c",c);
                 WriteConsole(hStdout, &c, 1, &written, NULL);
             } 
-            // else if (*format == 'l' && *(format + 1) == 'd') { // %ld
-            //     long num = va_arg(args, long);
-            //     char buffer[20]; 
-            //     int length = 0;
-            //     while (num != 0) {
-            //         buffer[length++] = '0' + (num % 10);
-            //         num /= 10;
-            //     }
-            //     if (length == 0) {
-            //         buffer[length++] = '0';
-            //     }
-            //     for (int i = length - 1; i >= 0; i--) {
-            //         WriteConsole(hStdout, &buffer[i], 1, &written, NULL);
-            //     }
-            // }
-            
-             else { 
-                WriteConsole(hStdout, format - 1, 2, &written, NULL);
+            else if (*format == 'l' && *(format + 1) == 'd') { // %ld
+                long num = va_arg(args, long);
+                char buffer[20]; 
+                int length = 0;
+                while (num != 0) {
+                    buffer[length++] = '0' + (num % 10);
+                    num /= 10;
+                }
+                if (length == 0) {
+                    buffer[length++] = '0';
+                }
+                for (int i = length - 1; i >= 0; i--) {
+                    WriteConsole(hStdout, &buffer[i], 1, &written, NULL);
+                }
             }
-        } else {
-            WriteConsole(hStdout, format, 1, &written, NULL);
+            
+            else if (*format == '0' && *(format + 1) == '.'  ) {
+
+                format++;
+                format++;
+                int precision = 0;
+                while (*format >= '0' && *format <= '9') {
+                    precision = precision * 10 + (*format - '0');
+                    format++;
+                }
+                if (*format == 'f') {
+                    double num = va_arg(args, double);
+                    PrecisionFloat(num, hStdout, &written, precision);
+                }
+                else{
+                   
+                    
+                    WriteConsole(hStdout, format, 1, &written, NULL);
+                
+                }
+        }  
+            else{
+                format--;
+                WriteConsole(hStdout, format, 1, &written, NULL);
+            
+            }
+            
         }
+        else {
+
+                WriteConsole(hStdout, format, 1, &written, NULL);
+            }
+
         format++;
+   
+    
     }
 
-    va_end(args);
-    //to free arge pointer
+ va_end(args);
 }
