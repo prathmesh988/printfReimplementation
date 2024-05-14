@@ -1,8 +1,8 @@
 # Printf Scratch implementation
 
-First of all this is just striclty for windows !
+First of all this is just striclty for windows ! 
 
-
+Read this first :- 
 ```
 "index.h" contains the my_printf function  
  main.c  is the main  file which execute that 
